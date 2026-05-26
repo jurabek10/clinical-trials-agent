@@ -74,6 +74,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (status === HttpStatus.BAD_REQUEST) return 'INVALID_INPUT';
     if (status === HttpStatus.UNPROCESSABLE_ENTITY) return 'PLAN_VALIDATION_FAILED';
     if (status === HttpStatus.BAD_GATEWAY) return 'UPSTREAM_FAILURE';
+    if (status === HttpStatus.NOT_FOUND) return 'NO_DATA';
     return 'INTERNAL';
   }
 }

@@ -30,7 +30,7 @@ export class VisualizationService {
     preferredViz?: VizType,
   ): BuildResult {
     const chosen = this.chooseVizType(plan, preferredViz);
-    const title = this.makeTitle(plan, effective);
+    const title = this.makeTitle(plan, effective, chosen, preferredViz);
 
     switch (chosen) {
       case 'bar_chart':
@@ -350,9 +350,22 @@ export class VisualizationService {
     }
   }
 
-  private makeTitle(plan: QueryPlan, effective: QueryFilters): string {
-    if (plan.title_hint) return plan.title_hint;
+  private makeTitle(
+    plan: QueryPlan,
+    effective: QueryFilters,
+    chosen: VizType,
+    preferredViz?: VizType,
+  ): string {
     const subject = effective.drug_name ?? effective.condition ?? plan.primary_entity.value ?? 'trials';
+    if (preferredViz === 'histogram') {
+      return `Enrollment distribution for ${subject} trials`;
+    }
+    if (preferredViz === 'scatter_plot') {
+      return `Enrollment vs duration for ${subject} trials`;
+    }
+    if (plan.title_hint) return plan.title_hint;
+    if (chosen === 'histogram') return `Enrollment distribution for ${subject} trials`;
+    if (chosen === 'scatter_plot') return `Enrollment vs duration for ${subject} trials`;
     return `Clinical trials related to ${subject}`;
   }
 }

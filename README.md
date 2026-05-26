@@ -5,6 +5,11 @@ A backend service that converts natural-language questions about clinical trials
 The LLM is used **only as a translator** (text → query plan); it never produces numbers
 or summarizes trial content.
 
+## Live deployment
+
+- Backend API: https://clinical-trials-agent-backend.onrender.com
+- Frontend demo: https://web-six-umber-cggiotta9d.vercel.app
+
 ---
 
 ## Quickstart
@@ -20,6 +25,7 @@ pnpm install
 
 # 3. Run (dev)
 pnpm dev:backend          # NestJS in watch mode on PORT (default 3000)
+pnpm dev:web              # Next.js demo UI on port 3001
 ```
 
 Or with Docker:

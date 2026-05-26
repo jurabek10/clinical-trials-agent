@@ -6,7 +6,7 @@
     "dev": "NO_COLOR= FORCE_COLOR=1 next dev -p 3001",
     "build": "next build",
     "start": "NO_COLOR= FORCE_COLOR=1 next start -p 3001",
-    "lint": "next lint"
+    "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@ct-agent/shared": "workspace:*",

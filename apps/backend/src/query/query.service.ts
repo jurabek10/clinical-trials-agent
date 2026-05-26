@@ -12,6 +12,7 @@ import {
 } from '../clinicaltrials/mappers/plan-to-params.mapper';
 import { QueryRequestDto } from './dto/query-request.dto';
 import { extractDrugComparisonTerms } from '../common/comparison-terms';
+import { noData } from '../common/errors';
 
 @Injectable()
 export class QueryService {
@@ -80,6 +81,14 @@ export class QueryService {
       );
     }
 
+    if (filtered.length === 0) {
+      throw noData('No studies matched the query/filter combination.', {
+        filters_applied: this.cleanFilters(effective as unknown as Record<string, unknown>),
+        total_studies_scanned: totalScanned,
+        assumptions,
+      });
+    }
+
     const includeCitations = req.options?.include_citations ?? true;
     const { spec, buckets, timeGranularity } = this.viz.build(
       plan,
@@ -87,10 +96,6 @@ export class QueryService {
       effective,
       req.options?.preferred_viz,
     );
-
-    if (filtered.length === 0) {
-      assumptions.push('No studies matched the query/filter combination.');
-    }
 
     const citations = includeCitations ? this.citationLinker.link(spec, filtered, buckets) : undefined;
 

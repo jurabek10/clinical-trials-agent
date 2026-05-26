@@ -73,7 +73,7 @@ curl -s -X POST http://localhost:3000/api/query \
 ### Request lifecycle
 
 1. Validate request (NestJS DTO + class-validator).
-2. **Plan** with OpenAI; output is parsed by a Zod schema.
+2. **Plan** with OpenAI using **strict `json_schema` structured outputs**; output is then re-validated by a Zod schema (for length / array-size constraints that strict mode can't express).
 3. On Zod failure, retry once with the validation error appended. Second failure → 422.
 4. **Fetch** matching studies from ClinicalTrials.gov, paginated (page size 100).
 5. **Aggregate** in pure TypeScript (no LLM).
@@ -191,9 +191,12 @@ The viz spec is **canonical**: any frontend can render from `{type, encoding, da
   groupings, and time bins are computed by deterministic TypeScript reducers from the raw
   ClinicalTrials.gov payload. This is the single most important hallucination-prevention
   choice in the system.
-- **Zod validation + one-retry policy.** Every LLM output is parsed by `QueryPlanSchema`.
-  If parsing fails, the planner retries once with the validation errors appended to the
-  prompt. A second failure returns `422 PLAN_VALIDATION_FAILED`.
+- **Strict JSON-schema structured outputs + Zod belt-and-suspenders.** The planner calls
+  OpenAI with `response_format: { type: "json_schema", strict: true }` so the model can't
+  emit wrong-shape JSON. The same payload is then re-validated by `QueryPlanSchema` to
+  enforce length/array-size constraints OpenAI's strict mode can't express. On parse failure
+  the planner retries once with the validation errors appended; a second failure returns
+  `422 PLAN_VALIDATION_FAILED`.
 - **Aggregation is pure TypeScript.** Each strategy returns `{ data, buckets }`, where
   `buckets` is a `bucketKey → Set<nctId>` map used for downstream citation linking.
   All strategies are unit-tested with golden inputs.
@@ -202,6 +205,17 @@ The viz spec is **canonical**: any frontend can render from `{type, encoding, da
   memory) is reported as an explicit assumption in `meta.assumptions`.
 - **Network graph truncation.** Top-N edges by weight (default 100) are kept to avoid a
   hairball. Node `size` is summed edge weight.
+- **Comparison fan-out.** When the planner picks a `comparison` intent against `drug`,
+  `condition`, or `sponsor`, the orchestrator extracts the two compared terms from the
+  plan's title/interpretation and OR-expands them into the corresponding CT.gov v2 query
+  parameter (`query.intr` / `query.cond` / `query.lead`). It also passes the term list as
+  a series-filter into the aggregator so sub-conditions ("Breast Cancer", "Lung Cancer", …)
+  collapse back to the user's parent label ("cancer"). The expansion is reported in
+  `meta.assumptions`.
+- **Truncation transparency.** If the fetch loop stops because `max_studies` was reached
+  while CT.gov still had a `nextPageToken`, the response surfaces
+  `"Scan stopped at max_studies=N; more matches may exist on ClinicalTrials.gov."` in
+  `meta.assumptions` — even when CT.gov doesn't report `totalCount`.
 - **Citations attached post-hoc.** Each datum's key (e.g. `phase=PHASE3`, `year=2021`,
   `edge:sponsor:Acme->drug:X`) maps to the contributing NCT IDs, then we pull up to 5
   excerpts per datum, capped at 50 total to control payload size.

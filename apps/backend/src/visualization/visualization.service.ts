@@ -11,7 +11,7 @@ import { AggregatorService } from '../aggregator/aggregator.service';
 import type { BucketMap } from '../aggregator/strategies/types';
 import type { CompareDim } from '../aggregator/strategies/comparison.strategy';
 import type { NetworkDim } from '../aggregator/strategies/build-network.strategy';
-import { extractDrugComparisonTerms } from '../common/comparison-terms';
+import { extractComparisonTerms } from '../common/comparison-terms';
 
 export interface BuildResult {
   spec: VisualizationSpec;
@@ -319,8 +319,8 @@ export class VisualizationService {
   }
 
   private seriesFilterFromPlan(plan: QueryPlan, seriesDim: CompareDim): string[] | undefined {
-    if (seriesDim === 'drug') {
-      return extractDrugComparisonTerms(plan);
+    if (seriesDim === 'drug' || seriesDim === 'condition' || seriesDim === 'sponsor') {
+      return extractComparisonTerms(plan);
     }
     return undefined;
   }

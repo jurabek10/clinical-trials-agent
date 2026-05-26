@@ -322,9 +322,9 @@ Few-shot examples:
 
 ### 6.3 Validation flow
 
-1. Call OpenAI with `response_format: { type: "json_schema", json_schema: ... }`.
-2. Parse output with `QueryPlanSchema.safeParse`.
-3. On failure: one retry with the error message appended to the user prompt.
+1. Call OpenAI with `response_format: { type: "json_schema", json_schema: { strict: true, schema: ... } }`. The JSON Schema is hand-authored to mirror `QueryPlanSchema` while complying with OpenAI's strict-mode constraints (every object has `additionalProperties: false`, every field is in `required`, nullables use `type: [<base>, "null"]`).
+2. Parse output with `QueryPlanSchema.safeParse` — this enforces the length/array-size constraints (e.g. `group_by` must have 1–2 items, `title_hint` 3–120 chars) that strict mode can't express.
+3. On Zod failure: one retry with the error message appended to the user prompt.
 4. On second failure: return 422 `PLAN_VALIDATION_FAILED`.
 
 ---

@@ -45,9 +45,10 @@ describe('ClinicalTrialsService', () => {
     expect(res.studies.length).toBe(5);
     expect(res.studies[0].nctId).toBe('NCT1');
     expect(res.studies[0].startYear).toBe(2020);
+    expect(res.truncated).toBe(false);
   });
 
-  it('stops early when cap is reached', async () => {
+  it('stops early when cap is reached and flags truncated=true', async () => {
     const pages: CTApiPage[] = [
       { studies: [studyEnvelope('A'), studyEnvelope('B'), studyEnvelope('C')], nextPageToken: 't1' },
     ];
@@ -59,6 +60,22 @@ describe('ClinicalTrialsService', () => {
 
     const res = await svc.fetchStudies({}, 2);
     expect(res.studies.length).toBe(2);
+    expect(res.truncated).toBe(true);
+  });
+
+  it('does not flag truncated when the last page has no nextPageToken', async () => {
+    const pages: CTApiPage[] = [
+      { studies: [studyEnvelope('A'), studyEnvelope('B')], nextPageToken: undefined },
+    ];
+    let i = 0;
+    const http = {
+      get: jest.fn(() => of({ data: pages[i++] })),
+    } as unknown as HttpService;
+    const svc = new ClinicalTrialsService(http, makeConfig());
+
+    const res = await svc.fetchStudies({}, 2);
+    expect(res.studies.length).toBe(2);
+    expect(res.truncated).toBe(false);
   });
 
   it('wraps upstream errors as UPSTREAM_FAILURE', async () => {

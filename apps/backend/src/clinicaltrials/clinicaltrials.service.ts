@@ -12,6 +12,8 @@ export interface FetchResult {
   studies: NormalizedStudy[];
   totalScanned: number;
   totalAvailable?: number;
+  /** True if we stopped fetching because we hit `maxStudies` while more pages were still available. */
+  truncated: boolean;
 }
 
 @Injectable()
@@ -37,6 +39,7 @@ export class ClinicalTrialsService {
     let pageToken: string | undefined;
     let totalAvailable: number | undefined;
     let pageIndex = 0;
+    let truncated = false;
 
     while (out.length < cap) {
       const remaining = cap - out.length;
@@ -52,6 +55,12 @@ export class ClinicalTrialsService {
         if (norm) out.push(norm);
       }
 
+      // CT.gov reports more pages but we've already hit the cap — record the truncation.
+      if (out.length >= cap && page.nextPageToken) {
+        truncated = true;
+        break;
+      }
+
       if (!page.nextPageToken || raw.length === 0) break;
       pageToken = page.nextPageToken;
     }
@@ -59,10 +68,10 @@ export class ClinicalTrialsService {
     this.logger.debug(
       `Fetched ${out.length} studies across ${pageIndex} page(s); total available: ${
         totalAvailable ?? 'unknown'
-      }`,
+      }; truncated=${truncated}`,
     );
 
-    return { studies: out, totalScanned: out.length, totalAvailable };
+    return { studies: out, totalScanned: out.length, totalAvailable, truncated };
   }
 
   private async fetchPage(params: CTApiParams): Promise<CTApiPage> {

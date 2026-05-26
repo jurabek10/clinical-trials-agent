@@ -5,6 +5,7 @@ import { QueryPlanSchema, type QueryPlan } from '@ct-agent/shared';
 import { planValidationFailed, upstreamFailure } from '../common/errors';
 import { PLANNER_SYSTEM_PROMPT } from './prompts/system-prompt';
 import { FEW_SHOT_EXAMPLES } from './prompts/few-shot-examples';
+import { QUERY_PLAN_JSON_SCHEMA } from './schemas/query-plan.json-schema';
 
 @Injectable()
 export class PlannerService {
@@ -69,7 +70,14 @@ export class PlannerService {
         model: this.model,
         messages,
         temperature: 0,
-        response_format: { type: 'json_object' },
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'query_plan',
+            strict: true,
+            schema: QUERY_PLAN_JSON_SCHEMA as unknown as Record<string, unknown>,
+          },
+        },
       });
       const content = completion.choices[0]?.message?.content;
       if (!content) throw new Error('OpenAI returned empty content');

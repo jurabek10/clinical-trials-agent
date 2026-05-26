@@ -74,6 +74,21 @@ describe('PlannerService', () => {
     expect(plan.primary_entity.value).toBe('Pembrolizumab');
   });
 
+  it('uses OpenAI strict json_schema mode for the call', async () => {
+    const { svc, fake } = makeService([validPlan]);
+    await svc.plan('test');
+    const args = fake.calls[0] as {
+      response_format: {
+        type: string;
+        json_schema: { name: string; strict: boolean; schema: Record<string, unknown> };
+      };
+    };
+    expect(args.response_format.type).toBe('json_schema');
+    expect(args.response_format.json_schema.strict).toBe(true);
+    expect(args.response_format.json_schema.name).toBe('query_plan');
+    expect(args.response_format.json_schema.schema.type).toBe('object');
+  });
+
   it('retries once on invalid output, succeeds on second try', async () => {
     const { svc, fake } = makeService([invalidPlanShape, validPlan]);
     const plan = await svc.plan('test');

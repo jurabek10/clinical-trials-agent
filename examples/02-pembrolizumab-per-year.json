@@ -1,0 +1,9 @@
+{
+  "query": "How has the number of trials for Pembrolizumab changed per year since 2015?",
+  "filters": {
+    "start_year": 2015
+  },
+  "options": {
+    "max_studies": 500
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "query": "Show a network of sponsors and drugs for melanoma trials since 2020.",
+  "filters": {
+    "start_year": 2020
+  },
+  "options": {
+    "max_studies": 500
+  }
+}

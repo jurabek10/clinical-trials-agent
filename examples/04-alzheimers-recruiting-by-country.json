@@ -1,0 +1,9 @@
+{
+  "query": "Which countries have the most recruiting trials for Alzheimer's disease?",
+  "filters": {
+    "status": ["RECRUITING"]
+  },
+  "options": {
+    "max_studies": 500
+  }
+}

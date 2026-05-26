@@ -1,0 +1,6 @@
+{
+  "query": "Compare phase distribution for Pembrolizumab vs Nivolumab.",
+  "options": {
+    "max_studies": 500
+  }
+}

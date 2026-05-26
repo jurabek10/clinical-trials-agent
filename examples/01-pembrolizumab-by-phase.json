@@ -1,0 +1,7 @@
+{
+  "query": "How are trials for Pembrolizumab distributed across phases?",
+  "options": {
+    "max_studies": 500,
+    "include_citations": true
+  }
+}

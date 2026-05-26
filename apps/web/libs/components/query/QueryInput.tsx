@@ -39,7 +39,7 @@ export function QueryInput({ onSubmit, loading }: QueryInputProps) {
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
-          {config.examplePrompts.slice(0, 3).map((p) => (
+          {config.examplePrompts.slice(0, 5).map((p) => (
             <button
               key={p}
               type="button"

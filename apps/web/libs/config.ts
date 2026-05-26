@@ -7,7 +7,9 @@ export const config = {
   examplePrompts: [
     'How are trials for Pembrolizumab distributed across phases?',
     'How has the number of trials for Pembrolizumab changed per year since 2015?',
+    'What are the most common intervention types for Pembrolizumab trials?',
     'Compare phase distribution for Pembrolizumab vs Nivolumab.',
+    'Compare sponsor categories across cancer and diabetes trials.',
     "Which countries have the most recruiting trials for Alzheimer's disease?",
     'Show a network of sponsors and drugs for melanoma trials since 2020.',
   ],

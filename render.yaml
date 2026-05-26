@@ -3,12 +3,14 @@ services:
     name: clinical-trials-agent-backend
     runtime: node
     plan: free
-    buildCommand: corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install --frozen-lockfile && pnpm build:backend
+    buildCommand: npm install -g pnpm@9.15.9 && pnpm install --frozen-lockfile --prod=false && pnpm build:backend
     startCommand: pnpm start:backend
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_VERSION
+        value: 22.19.0
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_MODEL

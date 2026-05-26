@@ -250,22 +250,81 @@ The viz spec is **canonical**: any frontend can render from `{type, encoding, da
 
 ---
 
-## Limitations & future work
+## Limitations & what I'd improve with more time
 
-- Hard cap of 1000 studies per query (configurable; could stream with cursors).
-- Country normalization is naive — no ISO-3 mapping or alias collapse yet.
-- No cross-query memoization / caching layer yet.
-- The few-shot prompt is hand-tuned; it could become a learned router.
-- Network graphs lack a clustering pass.
+**Known limitations of the current build:**
+- **Hard cap of 1000 studies per query.** Anything beyond that is silently dropped from
+  the scan (though `meta.assumptions` now reports it). Some queries (e.g. "all cancer
+  trials") legitimately have ~50k+ matches; the chart is therefore based on the first
+  N studies CT.gov returns in its default sort order, which is *not* a random sample.
+- **Country normalization is naive.** "United States" / "USA" / "United States of America"
+  are not collapsed to a single bucket. No ISO-3 mapping for the `geo_map` viz.
+- **Histogram bin size is fixed** at 100 (enrollment). For cancer-scale enrollment values,
+  this can produce hundreds of sparse bins; an adaptive Freedman–Diaconis or
+  user-supplied bin size would be better.
+- **Comparison term extraction is regex-based.** Catches "X vs Y", "for X and Y",
+  "across X and Y", "comparing X to Y", but pathological phrasings can still slip past.
+- **No caching.** Every request re-calls OpenAI and re-hits ClinicalTrials.gov.
+- **Network graphs lack a clustering pass** — top-N edges by weight is readable but a
+  community-detection layer (Louvain / Leiden) would surface meaningful sponsor clusters.
+- **Date filtering happens post-fetch.** If a user asks for "trials starting in 2024",
+  the API may return 800 modern trials and the in-memory filter then keeps only ~150 —
+  effectively wasting the page budget.
+
+**What I would add with more time (in priority order):**
+1. **Streaming pagination with cursors** to handle queries beyond 1000 studies without
+   blowing latency. Or, when CT.gov reports `totalCount > cap`, do a stratified sample
+   instead of taking the first page slice.
+2. **Country / sponsor name normalization** — ISO-3 mapping for countries, a small
+   alias table for the worst offenders ("US National Cancer Institute" vs "NCI").
+3. **A request-level cache** keyed by `(query, filters, options)` with a 1-hour TTL.
+   The current setup re-pays the OpenAI cost on every duplicate query.
+4. **Replace the regex-based comparison-term extractor** with a tiny second LLM call
+   constrained to the structured-output schema `{ terms: string[] }`. More robust on
+   weird phrasings and same hallucination-prevention discipline (no numbers, just text).
+5. **Adaptive viz selection** — currently `chooseVizType` blindly trusts
+   `options.preferred_viz`. Should fall back if the requested viz makes no sense for the
+   plan's intent (e.g. histogram on a categorical field).
+6. **A proper observability layer** — request IDs, structured JSON logs, per-stage
+   timings (planner / fetch / aggregate / build / cite) exported to OTLP.
+7. **A confidence/quality signal in `meta`** — when the LLM's `interpretation` differs
+   significantly from the user's query (low cosine similarity), surface a "We interpreted
+   this as: X — was that right?" hint to the frontend.
+8. **More test coverage** — currently 46 unit tests; missing: an end-to-end test against
+   a recorded CT.gov fixture, a contract test that the viz spec the frontend renders
+   exactly matches the spec the backend emits, and chaos tests for OpenAI/CT.gov outages.
+9. **Network graph layout hints** — the frontend currently picks force-directed; the
+   backend could ship layout metadata (e.g. recommended algorithm, edge-bundling toggle)
+   for graphs above a node-count threshold.
+10. **A frontend "explain this datum" affordance** that surfaces the existing
+    `citations[]` payload on hover — the data is already returned but the demo UI
+    doesn't yet expose it.
 
 ---
 
 ## AI tools used
 
-- **Claude Code (Opus 4.7)** generated the bulk of the scaffolding: NestJS module wiring,
-  DTOs, Dockerfile, test stubs, and the routine TypeScript types.
-- The **schemas (Zod), the system prompt, and the architecture** were designed deliberately;
-  AI implemented them after the design was set.
+This was a deliberately split workflow — different tools for different jobs:
+
+- **Codex (OpenAI)** — primary implementation. Wrote most of the NestJS module wiring, the
+  aggregator strategies, the ClinicalTrials.gov client, DTOs, and the Dockerfile. Acted as
+  the "pair programmer" for the bulk of the keystrokes.
+- **Claude Code (Opus 4.7)** — planning, review, and testing. Produced the initial system
+  design (the architecture diagram, the `QueryPlan` schema, the canonical viz spec, the
+  citation linker design), audited the generated implementation against the assignment
+  requirements, identified three correctness bugs (broken condition-vs-condition
+  comparisons, silent truncation at `max_studies`, design-doc claiming strict JSON schema
+  mode that wasn't actually wired up), implemented and tested the fixes for those, and
+  performed the final pre-submission audit.
+
+What was **designed deliberately** vs **generated**:
+- Deliberately designed: the LLM-as-translator pattern, the strict-`json_schema` + Zod
+  belt-and-suspenders validation flow, the comparison fan-out / series-filter mechanism,
+  the bucketKey-based citation linker, the canonical viz-spec shape (so any frontend can
+  render from `{type, encoding, data}` alone), and the module boundary between
+  planner / fetcher / aggregator / viz-builder.
+- AI-generated then reviewed: NestJS scaffolding, individual aggregator strategies, the
+  Next.js demo UI, Dockerfile, test stubs, and routine TypeScript types.
 
 ---
 

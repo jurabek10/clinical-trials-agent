@@ -330,12 +330,34 @@ What was **designed deliberately** vs **generated**:
 
 ## Verifying correctness
 
-- **Unit tests** for every aggregator and the planner retry path:
-  ```bash
-  pnpm --filter backend test
-  ```
-- **Manual spot-checks** of the 5 example queries against ClinicalTrials.gov website.
-- **Zod schema tests** for malformed LLM output (planner.spec.ts).
+How I validated that the system actually works, not just that it compiles:
+
+- **46 unit tests across 9 suites** (`pnpm --filter backend test`) covering:
+  - Every aggregator strategy with golden inputs → expected outputs
+    (`test/aggregator.spec.ts`, `test/intervention-type.spec.ts`)
+  - Planner retry path on malformed JSON and Zod-invalid output, plus an assertion that
+    the OpenAI call actually uses strict `json_schema` mode (`test/planner.spec.ts`)
+  - DTO validation including the cross-field `end_year ≥ start_year` rule
+    (`test/query-request.dto.spec.ts`)
+  - CT.gov pagination, `truncated` flag behaviour, and upstream-error wrapping
+    (`test/clinicaltrials.spec.ts`)
+  - Filter normalization (LLM produces "Recruiting", the API needs "RECRUITING")
+    (`test/plan-to-params.spec.ts`)
+  - Comparison-term extraction across drug-vs-drug, condition-vs-condition, and
+    "comparing X to Y" phrasings (`test/comparison-terms.spec.ts`)
+  - Query orchestrator: NO_DATA path, truncation assumption, condition OR-expansion,
+    and user-filter precedence (`test/query.service.spec.ts`)
+  - Visualization spec assembly (`test/visualization.spec.ts`)
+- **Manual spot-checks** of all 5 example queries against the live deployed backend; the
+  actual JSON responses are captured in `examples/outputs/`. Numbers were eyeballed
+  against the ClinicalTrials.gov website to confirm they're in the right ballpark.
+- **Live deployment smoke tests** — both `/health` and `POST /api/query` exercised on the
+  Render backend with each example body before submission.
+- **Error-path verification** — empty `query`, reversed year range, unknown drug, and
+  malformed body all confirmed to return the documented error codes (`INVALID_INPUT`,
+  `NO_DATA`).
+- **Edge-case viz overrides** — `preferred_viz: "histogram"` and `"scatter_plot"` both
+  smoke-tested live to confirm the override path works end-to-end.
 
 ---
 

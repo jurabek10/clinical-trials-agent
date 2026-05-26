@@ -1,7 +1,16 @@
 import type { NormalizedStudy } from '@ct-agent/shared';
 import type { BucketMap, GroupedDatum } from './types';
 
-export type CompareDim = 'phase' | 'status' | 'country' | 'year' | 'sponsor' | 'drug';
+export type CompareDim =
+  | 'phase'
+  | 'status'
+  | 'country'
+  | 'year'
+  | 'sponsor'
+  | 'sponsor_class'
+  | 'drug'
+  | 'condition'
+  | 'intervention_type';
 
 function valuesFor(s: NormalizedStudy, dim: CompareDim): string[] {
   switch (dim) {
@@ -15,8 +24,16 @@ function valuesFor(s: NormalizedStudy, dim: CompareDim): string[] {
       return s.startYear !== undefined ? [String(s.startYear)] : [];
     case 'sponsor':
       return [s.leadSponsorName?.trim() || 'Unknown'];
+    case 'sponsor_class':
+      return [s.leadSponsorClass?.trim() || 'UNKNOWN'];
     case 'drug':
       return s.interventionNames.length > 0 ? s.interventionNames : [];
+    case 'condition':
+      return s.conditions.length > 0 ? s.conditions : [];
+    case 'intervention_type':
+      return s.interventionTypes.length > 0
+        ? [...new Set(s.interventionTypes.map((t) => t.trim().toUpperCase()))]
+        : [];
   }
 }
 

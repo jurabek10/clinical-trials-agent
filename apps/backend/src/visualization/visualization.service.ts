@@ -107,6 +107,10 @@ export class VisualizationService {
         ({ data, buckets } = this.aggregator.bySponsorClass(studies));
         xField = 'sponsor_class';
         break;
+      case 'intervention_type':
+        ({ data, buckets } = this.aggregator.byInterventionType(studies));
+        xField = 'intervention_type';
+        break;
       default:
         ({ data, buckets } = this.aggregator.byPhase(studies));
         xField = 'phase';
@@ -297,7 +301,17 @@ export class VisualizationService {
   }
 
   private isCompareDim(d: string): d is CompareDim {
-    return ['phase', 'status', 'country', 'year', 'sponsor', 'drug'].includes(d);
+    return [
+      'phase',
+      'status',
+      'country',
+      'year',
+      'sponsor',
+      'sponsor_class',
+      'drug',
+      'condition',
+      'intervention_type',
+    ].includes(d);
   }
 
   private isNetworkDim(d: string): d is NetworkDim {
@@ -329,6 +343,8 @@ export class VisualizationService {
         return 'Drug';
       case 'condition':
         return 'Condition';
+      case 'intervention_type':
+        return 'Intervention type';
       default:
         return field;
     }

@@ -11,6 +11,7 @@ import { bucketByYear } from './strategies/bucket-by-year.strategy';
 import { histogramOfEnrollment } from './strategies/histogram.strategy';
 import { comparisonOf, type CompareDim } from './strategies/comparison.strategy';
 import { buildNetwork, type NetworkDim } from './strategies/build-network.strategy';
+import { groupByInterventionType } from './strategies/group-by-intervention-type.strategy';
 import type { BucketMap } from './strategies/types';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class AggregatorService {
   byCountry = groupByCountry;
   bySponsor = groupBySponsor;
   bySponsorClass = groupBySponsorClass;
+  byInterventionType = groupByInterventionType;
   byYear = bucketByYear;
   histogramEnrollment = histogramOfEnrollment;
   comparison = comparisonOf;

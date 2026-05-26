@@ -102,6 +102,23 @@ curl -s -X POST http://localhost:3000/api/query \
 }
 ```
 
+**Request schema:**
+
+| Field | Type | Required | Validation / meaning |
+|---|---:|---:|---|
+| `query` | `string` | yes | Natural-language clinical-trials question, 1-500 characters. |
+| `filters.condition` | `string` | no | Disease/condition term sent to ClinicalTrials.gov `query.cond`. |
+| `filters.drug_name` | `string` | no | Drug/intervention term sent to ClinicalTrials.gov `query.intr`. |
+| `filters.sponsor` | `string` | no | Lead sponsor term sent to ClinicalTrials.gov `query.lead`. |
+| `filters.country` | `string` | no | Location term sent to ClinicalTrials.gov `query.locn`. |
+| `filters.phase` | `Phase[]` | no | Any of `EARLY_PHASE1`, `PHASE1`, `PHASE2`, `PHASE3`, `PHASE4`, `NA`; max 10. |
+| `filters.status` | `Status[]` | no | Any of `RECRUITING`, `COMPLETED`, `TERMINATED`, `ACTIVE_NOT_RECRUITING`, `WITHDRAWN`, `NOT_YET_RECRUITING`; max 10. |
+| `filters.start_year` | `integer` | no | Inclusive lower bound, 1900-2100. Applied post-fetch to normalized start dates. |
+| `filters.end_year` | `integer` | no | Inclusive upper bound, 1900-2100; must be greater than or equal to `start_year`. |
+| `options.max_studies` | `integer` | no | Fetch cap, 10-1000. Defaults to `MAX_STUDIES_DEFAULT`, hard-capped by `MAX_STUDIES_HARD_CAP`. |
+| `options.include_citations` | `boolean` | no | Defaults to `true`; when true, returns source records per visual datum. |
+| `options.preferred_viz` | `VizType` | no | Optional override among `bar_chart`, `grouped_bar_chart`, `time_series`, `histogram`, `scatter_plot`, `network_graph`, `geo_map`. |
+
 **Response (200):**
 
 ```json
@@ -154,6 +171,17 @@ curl -s -X POST http://localhost:3000/api/query \
 ```
 
 Error codes: `INVALID_INPUT`, `PLAN_VALIDATION_FAILED`, `UPSTREAM_FAILURE`, `NO_DATA`, `INTERNAL`.
+
+### Response schema notes
+
+`visualization.type` selects the renderer. `visualization.encoding` maps fields to visual
+channels (`x`, `y`, `series`, `location`, `value`, `nodes`, `edges`). `visualization.data`
+is either an array of rows for chart/map types, or `{ "nodes": [...], "edges": [...] }`
+for `network_graph`. `meta.filters_applied`, `meta.query_interpretation`, and
+`meta.assumptions` explain how the query was interpreted and whether the scan was truncated.
+When present, `citations[]` maps each datum key (for example `phase=PHASE2` or
+`edge:sponsor:Acme->drug:X`) to up to five contributing ClinicalTrials.gov records with
+`nct_id`, source `field`, and a short field/value excerpt.
 
 ---
 
@@ -260,7 +288,7 @@ clinical-trials-agent/
 │   └── backend/                       # NestJS service
 ├── packages/
 │   └── shared/                        # @ct-agent/shared — cross-app types, enums, Zod schemas
-├── examples/                          # Example queries (curl bodies)
+├── examples/                          # Example query bodies plus outputs/ with actual JSON responses
 ├── pnpm-workspace.yaml
 ├── package.json
 ├── tsconfig.base.json

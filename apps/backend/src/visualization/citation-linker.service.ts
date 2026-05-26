@@ -78,8 +78,8 @@ export class CitationLinkerService {
     if (datumKey.startsWith('phase=')) {
       return {
         nct_id: s.nctId,
-        excerpt: this.truncate(title || s.phases.join(', ')),
-        field: 'BriefTitle',
+        excerpt: this.truncate(`${s.phases.length ? s.phases.join(', ') : 'NA'} — ${title}`),
+        field: 'Phase',
       };
     }
     if (datumKey.startsWith('status=')) {
@@ -92,8 +92,43 @@ export class CitationLinkerService {
     if (datumKey.startsWith('country=')) {
       return {
         nct_id: s.nctId,
-        excerpt: this.truncate(title),
-        field: 'BriefTitle',
+        excerpt: this.truncate(`${s.locationCountries.join(', ')} — ${title}`),
+        field: 'LocationCountry',
+      };
+    }
+    if (datumKey.includes('sponsor_class=')) {
+      return {
+        nct_id: s.nctId,
+        excerpt: this.truncate(`${s.leadSponsorClass ?? 'UNKNOWN'} — ${title}`),
+        field: 'LeadSponsorClass',
+      };
+    }
+    if (datumKey.includes('sponsor=')) {
+      return {
+        nct_id: s.nctId,
+        excerpt: this.truncate(`${s.leadSponsorName ?? 'Unknown'} — ${title}`),
+        field: 'LeadSponsorName',
+      };
+    }
+    if (datumKey.includes('intervention_type=')) {
+      return {
+        nct_id: s.nctId,
+        excerpt: this.truncate(`${s.interventionTypes.join(', ')} — ${title}`),
+        field: 'InterventionType',
+      };
+    }
+    if (datumKey.includes('drug=')) {
+      return {
+        nct_id: s.nctId,
+        excerpt: this.truncate(`${s.interventionNames.join(', ')} — ${title}`),
+        field: 'InterventionName',
+      };
+    }
+    if (datumKey.includes('condition=')) {
+      return {
+        nct_id: s.nctId,
+        excerpt: this.truncate(`${s.conditions.join(', ')} — ${title}`),
+        field: 'Condition',
       };
     }
     if (datumKey.startsWith('year=')) {
@@ -106,8 +141,10 @@ export class CitationLinkerService {
     if (datumKey.startsWith('edge:')) {
       return {
         nct_id: s.nctId,
-        excerpt: this.truncate(title),
-        field: 'BriefTitle',
+        excerpt: this.truncate(
+          `${s.leadSponsorName ?? 'Unknown sponsor'} — ${s.interventionNames.join(', ') || 'Unknown intervention'} — ${title}`,
+        ),
+        field: 'LeadSponsorName/InterventionName',
       };
     }
     return {

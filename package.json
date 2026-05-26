@@ -1,0 +1,21 @@
+{
+  "name": "ct-agent",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "build:shared": "pnpm --filter @ct-agent/shared build",
+    "dev:backend": "pnpm build:shared && pnpm --filter backend start:dev",
+    "dev:web": "pnpm build:shared && pnpm --filter web dev",
+    "build:backend": "pnpm build:shared && pnpm --filter backend build",
+    "build:web": "pnpm build:shared && pnpm --filter web build",
+    "build": "pnpm build:shared && pnpm --filter backend build && pnpm --filter web build",
+    "start:backend": "pnpm --filter backend start:prod",
+    "start:web": "pnpm --filter web start",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

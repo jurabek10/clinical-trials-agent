@@ -1,0 +1,18 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    image: ct-agent-backend:latest
+    container_name: ct-agent-backend
+    ports:
+      - "3000:3000"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      CT_API_BASE_URL: ${CT_API_BASE_URL:-https://clinicaltrials.gov/api/v2}
+      PORT: 3000
+      MAX_STUDIES_DEFAULT: ${MAX_STUDIES_DEFAULT:-500}
+      MAX_STUDIES_HARD_CAP: ${MAX_STUDIES_HARD_CAP:-1000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    restart: unless-stopped

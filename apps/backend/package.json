@@ -1,0 +1,56 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ClinicalTrials.gov query-to-visualization agent (NestJS)",
+  "scripts": {
+    "build": "nest build",
+    "start": "NO_COLOR= FORCE_COLOR=1 nest start",
+    "start:dev": "NO_COLOR= FORCE_COLOR=1 nest start --watch",
+    "start:prod": "NO_COLOR= FORCE_COLOR=1 node dist/main.js",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@ct-agent/shared": "workspace:*",
+    "@nestjs/axios": "^3.1.3",
+    "@nestjs/common": "^10.4.15",
+    "@nestjs/config": "^3.3.0",
+    "@nestjs/core": "^10.4.15",
+    "@nestjs/platform-express": "^10.4.15",
+    "axios": "^1.7.9",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "openai": "^4.77.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.9",
+    "@nestjs/schematics": "^10.2.3",
+    "@nestjs/testing": "^10.4.15",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.3"
+  },
+  "jest": {
+    "moduleFileExtensions": ["js", "json", "ts"],
+    "rootDir": ".",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "tsconfig.test.json" }]
+    },
+    "moduleNameMapper": {
+      "^@ct-agent/shared$": "<rootDir>/../../packages/shared/src/index.ts"
+    },
+    "testEnvironment": "node"
+  }
+}

@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: clinical-trials-agent-backend
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install --frozen-lockfile && pnpm build:backend
+    startCommand: pnpm start:backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: CT_API_BASE_URL
+        value: https://clinicaltrials.gov/api/v2
+      - key: MAX_STUDIES_DEFAULT
+        value: "500"
+      - key: MAX_STUDIES_HARD_CAP
+        value: "1000"
+      - key: LOG_LEVEL
+        value: info
